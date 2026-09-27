@@ -16,7 +16,7 @@ Included runtime data directories referenced by the code:
 - `binary_mask/`
 - `phase_screen/`
 
-Notes before publishing or running elsewhere:
+Notes before running elsewhere:
 - `main_polished.py` contains a hardcoded output path:
   - `pixel_noise_mean_output_dir = Path("/media/liurong/My Passport/PLACID")`
   Update that path for the target machine if you need the `pixel_noise` workflow.
