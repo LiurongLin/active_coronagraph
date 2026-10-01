@@ -16,5 +16,3 @@ and runtime data under `data`.
 
 - `ACTIVE_CORONAGRAPH_DATA_DIR`: runtime FITS/PNG data directory.
 - `ACTIVE_CORONAGRAPH_OUTPUT_DIR`: generated simulation output directory.
-- `ACTIVE_CORONAGRAPH_PIXEL_NOISE_OUTPUT_DIR`: pixel-noise mean output directory.
-- `ACTIVE_CORONAGRAPH_PHASE_SCREEN_FILE`: optional single phase-screen FITS cube.

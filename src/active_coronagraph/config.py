@@ -25,19 +25,6 @@ def output_dir() -> Path:
     return _path_from_env("ACTIVE_CORONAGRAPH_OUTPUT_DIR", Path.cwd())
 
 
-def pixel_noise_output_dir() -> Path:
-    """Return the base directory used by the pixel-noise averaging workflow."""
-    return _path_from_env("ACTIVE_CORONAGRAPH_PIXEL_NOISE_OUTPUT_DIR", output_dir())
-
-
 def phase_screen_dir() -> Path:
     """Return the directory containing phase-screen FITS cubes."""
     return data_dir() / "phase_screen"
-
-
-def legacy_phase_screen_file() -> Path:
-    """Return the optional legacy single phase-screen cube path."""
-    return _path_from_env(
-        "ACTIVE_CORONAGRAPH_PHASE_SCREEN_FILE",
-        phase_screen_dir() / "TROIA_phase_screens_new.fits",
-    )
