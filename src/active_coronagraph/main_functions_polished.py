@@ -25,9 +25,9 @@ from astropy.io import fits
 
 # External project modules (kept as wildcard to preserve behavior)
 # External project modules (imported explicitly to avoid wildcard pollution)
-import coronagraphs_polished
-import basic
-import make_plot
+from . import coronagraphs_polished
+from . import make_plot
+from .config import output_dir
 
 
 
@@ -61,8 +61,8 @@ def _root_folder(obstruction: bool, noise_level: Optional[float], folder_name: O
     if noise_level is not None:
         base = f"{base}_noise_{noise_level:g}"
     if folder_name:
-        return Path(f"{base}{folder_name}")
-    return Path(base)
+        return output_dir() / f"{base}{folder_name}"
+    return output_dir() / base
 
 
 def _run_dir(
@@ -256,7 +256,7 @@ def get_through_put(
     )
 
     with pushd(top / run_dir):
-        basic.simple_coro(
+        coronagraphs_polished.simple_coro(
             100,
             name,
             wl,

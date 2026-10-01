@@ -1,6 +1,6 @@
 from hcipy import *
-from basic import *
-from phase_masks import *
+from .basic import *
+from .phase_masks import *
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -9,7 +9,6 @@ from matplotlib import animation
 from astropy.io import fits
 from functools import partial
 import os
-from make_plot import *
 
 
 
@@ -546,7 +545,6 @@ def res_ene(dim, name, wavelength, nsamp, fpm_sam, lyot_stop=None, offset=None, 
 
 
         return res_ene
-
 
 
 

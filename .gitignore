@@ -1,5 +1,85 @@
+# Python bytecode and caches
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
+.python-version
+
+# OS/editor metadata
 .DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Local environments
+.venv/
+venv/
+env/
+ENV/
+.env
+.env.*
+
+# Python packaging and test caches
+*.egg-info/
+*.egg
+build/
+dist/
+.eggs/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+
+# Generated simulation output trees
+ideal_coro_2rd_mirror*/
+contrast_vs_res_txt/
+outputs/
+output/
+results/
+scratch/
+tmp/
+
+# Project-specific workflow outputs
+_pixel_noise*/
+_pixel_noise_mean/
+_phase_screen_compare/
+_phase_screen_lag2/
+throughput_directional_mono/
+throughput_map_mono/
+throughput_1d_mono/
+
+# Logs and temporary run files
+*.log
+*.tmp
+*.temp
+
+# Generated scientific arrays and FITS products.
+# Required source data under data/ is explicitly unignored below.
+/*.fits
+/*.npy
+/*.npz
+/*.h5
+/*.hdf5
+/*.asdf
+!data/**/*.fits
+
+# Generated figures.
+# Required source/preview figures under data/ are explicitly unignored below.
+/*.png
+/*.pdf
+/*.svg
+!data/**/*.png
+
+# Generated text tables from simulation/post-processing workflows.
+*_annuli_profile.txt
+*throughput*.txt
+*contrast*.txt
+*res_ene*.txt
+final_focal_plane_coro_mask=*.txt
+after_lyot_stop_plane_coro_mask=*.txt
+lyot_*_tp*.txt
