@@ -43,12 +43,6 @@ The broadband workflow uses wavelength ratios `[0.9, 0.95, 1.0, 1.05, 1.1]`
 by default and combines the wavelength-specific PSFs with endpoint-half
 trapezoid weights.
 
-The legacy source-tree entry point is still available:
-
-```bash
-python main_polished.py --function main_func --name dual_zone --charge None
-```
-
 Generated simulation outputs are written under the current working directory by
 default.
 
