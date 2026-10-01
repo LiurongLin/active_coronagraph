@@ -31,12 +31,9 @@ from .main_functions_polished import _root_folder, _run_dir
 from .new_mask import directional_throughput_mono, throughput_map_mono, throughput_1d_mono
 from .config import (
     data_dir as configured_data_dir,
-    legacy_phase_screen_file,
     phase_screen_dir,
-    pixel_noise_output_dir,
 )
-import inspect
-import os, glob
+import os
 import hcipy
 
 
@@ -81,7 +78,6 @@ weight[[0, -1]] = 0.5
 ang = 45
 folder_name = ""
 phase_screen_folder = phase_screen_dir()
-pixel_noise_mean_output_dir = pixel_noise_output_dir()
 
 contrast_ind = np.arange(1, 60, 2)
 roddier_d_list = np.arange(1, 1.5, 0.02)
@@ -264,75 +260,6 @@ def broadband_final_psf(mask_name: str, charge_val: Optional[int], folder: str =
     )
 
 
-def _combine_pixel_noise_annuli_mean(
-    mask_name: str,
-    charge_val: Optional[int],
-    n_realizations: int = 1,
-    source_prefix: str = "_pixel_noise",
-    output_folder: str = "_pixel_noise_mean",
-):
-    """Average annular-contrast curves over repeated pixel-noise realizations."""
-    curve_name = (
-        f"final_focal_plane_coro_mask={mask_name}_{charge_val}_sample={nsamp}_"
-        f"fpm_sam={fpm_sam}_obstruction_{obstruction}_bb.txt"
-    )
-
-    arrays: list[np.ndarray] = []
-    for i in range(n_realizations):
-        file_path = (
-            _root_folder(obstruction, noise_level, f"{source_prefix}_{i}")
-            / f"lyot_{lyot_stop}_{mask_name}_{charge_val}_lambda_1.0_fpm_sam={fpm_sam}_"
-              f"binary_False_obstruction_{obstruction}_greyscale_8"
-            / curve_name
-        )
-        if not file_path.exists():
-            continue
-        arrays.append(np.loadtxt(file_path, dtype=float))
-
-    if not arrays:
-        raise FileNotFoundError(
-            f"No pixel-noise annuli-mean files found for {mask_name=} {charge_val=}"
-        )
-
-    mean_curve = np.mean(np.asarray(arrays), axis=0)
-    noise_folder = f"noise_{noise_level:g}" if noise_level is not None else "noise_none"
-    run_dir = pixel_noise_mean_output_dir / noise_folder / output_folder / (
-        f"lyot_{lyot_stop}_{mask_name}_{charge_val}_lambda_1.0_fpm_sam={fpm_sam}_"
-        f"binary_False_obstruction_{obstruction}_greyscale_8"
-    )
-    output_path = run_dir / curve_name
-    run_dir.mkdir(parents=True, exist_ok=True)
-    np.savetxt(output_path, mean_curve)
-    return output_path
-
-
-def add_pixel_noise(mask_name: str, charge_val: Optional[int], phase: Optional[np.ndarray] = None):
-    n_realizations = 1
-    for i in range(n_realizations):
-        folder_n = f"_pixel_noise_{i}"
-        main_func(mask_name, charge_val, folder = folder_n)
-        broadband_combine_final_psf(wavelength, fpm_sam, nsamp, weight,
-                                    mask_name, charge_val,
-                                    obstruction, lyot_stop, noise_level=noise_level,
-                                    folder_name=folder_n)
-
-        annuli_mean(mask_name, nsamp, fpm_sam, lyot_stop, charge_val, obstruction,
-                    wl=1.0, rotate=False, greyscale=8, broadband=True,
-                    noise_level=noise_level, folder_name=folder_n)
-
-    _combine_pixel_noise_annuli_mean(mask_name, charge_val, n_realizations=n_realizations)
-
-    for i in range(n_realizations):
-        folder_n = f"_pixel_noise_{i}"
-        fits_dir = os.path.join(_root_folder(obstruction, noise_level, folder_n), "")  # same as used by run()
-        for f in glob.glob(os.path.join(fits_dir, "**", "final_focal_plane_coro_mask=*.fits"), recursive=True):
-            try:
-                os.remove(f)
-                print(f"Deleted temporary file: {f}")
-            except OSError as e:
-                print(f"Warning: could not delete {f} — {e}")
-
-
 def _phase_screen_case_tag(path: Path) -> str:
     stem = path.stem
     marker = "jitter"
@@ -433,8 +360,8 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description='Run coronagraph pipelines with different parameters.')
     p.add_argument('--function',
                    choices=['main_func', 'res_ene', 'annuli_mean', 'summary_plot', 'broadband_combine',
-                            'tp_bb', 'plot_tp', 'fpm_plot', 'broadband_kit', 'add_phase_screen', 'add_fill_factor',
-                            'pixel_noise', 'ghost_im', 'compare_phase_screens', 'tp_directional_mono',
+                            'tp_bb', 'plot_tp', 'fpm_plot', 'broadband_kit', 'add_fill_factor',
+                            'ghost_im', 'compare_phase_screens', 'tp_directional_mono',
                             'tp_map_mono', 'tp_1d_mono'],
                    required=True, help='Which workflow to run.')
     p.add_argument('--name', nargs='*', default=default_name,
@@ -479,10 +406,6 @@ def build_parser() -> argparse.ArgumentParser:
                    help='Directory containing runtime data. Defaults to ACTIVE_CORONAGRAPH_DATA_DIR or ./data.')
     p.add_argument('--phase-screen-folder', type=Path, default=None,
                    help='Directory containing phase-screen FITS cubes.')
-    p.add_argument('--phase-screen-file', type=Path, default=None,
-                   help='Single phase-screen FITS cube for the add_phase_screen workflow.')
-    p.add_argument('--pixel-noise-output-dir', type=Path, default=None,
-                   help='Output directory for pixel-noise mean products.')
     return p
 
 
@@ -495,7 +418,6 @@ def main() -> None:
     global phase_shift_unit
     global coro_shift
     global phase_screen_folder
-    global pixel_noise_mean_output_dir
     try:
         wavelength = resolve_wavelengths(args.function, args.wavelength)
     except argparse.ArgumentTypeError as exc:
@@ -513,22 +435,10 @@ def main() -> None:
         if args.phase_screen_folder is not None
         else phase_screen_dir()
     )
-    pixel_noise_mean_output_dir = (
-        args.pixel_noise_output_dir.expanduser().resolve()
-        if args.pixel_noise_output_dir is not None
-        else pixel_noise_output_dir()
-    )
 
     if args.function == 'main_func':
         for mask_name, ch in zip(args.name, args.charge):
             main_func(mask_name, ch)
-
-
-    elif args.function == 'pixel_noise':
-        print(simple_coro.__module__)
-        print(inspect.getsourcefile(simple_coro))
-        for mask_name, ch in zip(args.name, args.charge):
-            add_pixel_noise(mask_name, ch)
 
     elif args.function == 'res_ene':
         for mask_name, ch in zip(args.name, args.charge):
@@ -565,28 +475,6 @@ def main() -> None:
             annuli_mean(mask_name, 100, 10, lyot_stop, ch, False, wl=1.0,
                         rotate=False, greyscale=8, broadband=False,
                         noise_level=noise_level, folder_name="_fill_factor")
-
-    elif args.function == 'add_phase_screen':
-        # This branch previously used os.chdir(".."); we avoid that.
-        local_obstruction = True
-        phase_screen_file = (
-            args.phase_screen_file.expanduser().resolve()
-            if args.phase_screen_file is not None
-            else legacy_phase_screen_file()
-        )
-        for mask_name, ch in zip(args.name, args.charge):
-            for i in range(100):
-                try:
-                    with fits.open(phase_screen_file) as hdul:
-                        phase_screen = hdul[0].data[i]
-                except FileNotFoundError:
-                    print(f"FileNotFoundError: {phase_screen_file}")
-                    break  # nothing to process
-                main_func(mask_name, ch, phase=phase_screen, folder=f"_phase_screen_lag2/{i}")
-            combine_phase_screen_psf(mask_name, ch, local_obstruction)
-            annuli_mean(mask_name, nsamp, fpm_sam, lyot_stop, ch, local_obstruction,
-                        wl=1.0, rotate=False, greyscale=8, broadband=False,
-                        folder_name="_phase_screen_lag2")
 
     elif args.function == 'compare_phase_screens':
         for mask_name, ch in zip(args.name, args.charge):

@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from active_coronagraph.basic import Isum, pad_array, phase_2pi, phi_ramp, r_theta
+from active_coronagraph.coronagraphs_polished import simple_coro
 
 
 def test_phase_2pi_wraps_complex_phase_to_nonnegative_interval():
@@ -55,3 +56,23 @@ def test_r_theta_uses_y_x_grid_relative_to_center():
 def test_isum_returns_real_total_intensity():
     field = np.array([1 + 1j, 2 - 1j])
     assert Isum(field) == pytest.approx(7.0)
+
+
+def test_simple_coro_non_reference_wavelength_keeps_output_grid(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+
+    image = simple_coro(
+        dim=10,
+        name="FQPM",
+        wavelength=0.9,
+        nsamp=2,
+        fpm_sam=2,
+        lyot_stop="None_1_1",
+        charge=None,
+        binary=False,
+        obstruction=False,
+        get_lyot=False,
+        greyscale=None,
+    )
+
+    assert image.shape == (20, 20)

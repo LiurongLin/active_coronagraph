@@ -352,8 +352,6 @@ The path helpers are in `src/active_coronagraph/config.py`:
 | --- | --- | --- | --- | --- |
 | `ACTIVE_CORONAGRAPH_DATA_DIR` / `data_dir()` | Runtime data root containing `binary_mask/` and `phase_screen/` | path | `<repo>/data` | Any existing data directory with expected subdirectories |
 | `ACTIVE_CORONAGRAPH_OUTPUT_DIR` / `output_dir()` | Base directory for generated simulation outputs | path | current working directory | Any writable directory |
-| `ACTIVE_CORONAGRAPH_PIXEL_NOISE_OUTPUT_DIR` / `pixel_noise_output_dir()` | Base directory for pixel-noise mean outputs | path | `output_dir()` | Any writable directory |
-| `ACTIVE_CORONAGRAPH_PHASE_SCREEN_FILE` / `legacy_phase_screen_file()` | Single phase-screen FITS cube for the legacy `add_phase_screen` workflow | path | `phase_screen/TROIA_phase_screens_new.fits` under the data directory | FITS cube path |
 | `phase_screen_dir()` | Directory containing phase-screen FITS cubes | path | `data_dir() / "phase_screen"` | Derived from data root |
 | `binary_mask_dir()` | Directory containing binary-mask FITS files | path | `data_dir() / "binary_mask"` | Derived from data root |
 
@@ -368,7 +366,6 @@ The CLI also accepts selected path overrides:
 
 ```bash
 active-coronagraph --function compare_phase_screens --data-dir data
-active-coronagraph --function add_phase_screen --phase-screen-file path/to/screens.fits
 ```
 
 CLI defaults are module-level variables in `cli.py`. Important defaults include:
@@ -651,9 +648,12 @@ length with units. The CLI help describes it as a wavelength ratio
 In `simple_coro()` and related functions, `wavelength` affects:
 
 - the aperture size passed to `make_aperture(round_to_even(dim / wavelength))`;
-- the Lyot-stop dimension passed to `make_lyot_stop(round_to_even(dim / wavelength))`;
 - the final focal-plane mask phase scaling in `focal_mask_new()` through
   multiplication by `1 / wavelength`.
+
+The Lyot stop and final output grid use the base `dim` and `nsamp` values so
+all wavelength-specific PSFs in a broadband run have the same array shape and
+can be combined.
 
 Monochromatic operation is the clearest beginner workflow, but the code also
 supports broadband products by combining simulations that have already been run
@@ -859,16 +859,6 @@ active-coronagraph --function compare_phase_screens \
   --phase-screen-folder /path/to/phase_screen
 ```
 
-The older single-file workflow is:
-
-```bash
-active-coronagraph --function add_phase_screen \
-  --name FQPM --charge None \
-  --phase-screen-file data/phase_screen/TROIA_phase_screens_new_jitter5percentLamdaOverD.fits
-```
-
-It attempts to process 100 slices from the selected FITS cube.
-
 The code does not currently document physical units for the phase-screen values.
 Use the supplied files and any custom replacements with care, and preserve array
 shape compatibility with the aperture being simulated.
@@ -972,9 +962,7 @@ tp_bb
 plot_tp
 fpm_plot
 broadband_kit
-add_phase_screen
 add_fill_factor
-pixel_noise
 ghost_im
 compare_phase_screens
 tp_directional_mono
