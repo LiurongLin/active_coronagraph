@@ -1,29 +1,33 @@
-# Active Coronagraph
+# main_polished bundle
 
-Scientific Python code for coronagraph simulations and focal-plane mask studies.
+This folder contains the project-local code required by `main_polished.py`.
 
-## Repository Layout
+Included Python modules:
+- `main_polished.py`
+- `basic.py`
+- `make_plot.py`
+- `coronagraphs.py`
+- `coronagraphs_polished.py`
+- `main_functions_polished.py`
+- `new_mask.py`
+- `phase_masks.py`
 
-- `src/active_coronagraph/`: installable Python package.
-- `data/`: bundled runtime FITS/PNG data used by selected workflows.
-- `examples/`: small usage examples.
-- `tests/`: smoke tests for imports, configuration, and the CLI.
-- `docs/`: publication documentation scaffold.
-- `scripts/`: reserved for maintenance or one-off helper scripts.
+Included runtime data directories referenced by the code:
+- `binary_mask/`
+- `phase_screen/`
 
-## Installation
+Notes before running elsewhere:
+- `main_polished.py` contains a hardcoded output path:
+  - `pixel_noise_mean_output_dir = Path("/media/liurong/My Passport/PLACID")`
+  Update that path for the target machine if you need the `pixel_noise` workflow.
+- Some workflows also expect generated outputs under directories such as
+  `ideal_coro_2rd_mirror_*`. Those are not included here because they are outputs,
+  not source dependencies.
+- The `add_phase_screen` branch in `main_polished.py` also references
+  `2)seeing=1,vmag=8,ZA=30,lag=2/TROIA_phase_screens_new.fits`, which is not part
+  of this bundle.
 
-```bash
-python -m pip install -e ".[dev]"
-```
-
-For runtime-only use:
-
-```bash
-python -m pip install -e .
-```
-
-## Basic CLI Usage
+Basic run example:
 
 ```bash
 active-coronagraph --function main_func --name dual_zone --charge None
