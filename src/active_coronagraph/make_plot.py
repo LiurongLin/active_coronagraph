@@ -1,7 +1,7 @@
 
 
-from basic import *
-from coronagraphs import *
+from .basic import *
+from .coronagraphs import *
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -1655,7 +1655,6 @@ def plot_tp(name, charge):
     data = f"ideal_coro_2rd_mirror_True/lyot_None_1_1_{name}_{charge}_sam_10_fpm_sam=10_binary_False_obstruction_True_greyscale_8_bb.txt"
     plt.plot(data)
     plt.show()
-
 
 
 

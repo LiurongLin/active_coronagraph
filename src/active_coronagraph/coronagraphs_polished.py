@@ -21,10 +21,9 @@ from astropy.io import fits  # noqa: F401  (used indirectly by wfits)
 from mpl_toolkits.axes_grid1 import make_axes_locatable  # noqa: F401 (left for backward compat)
 
 # Project modules (wildcard preserved: functions are used by name in this file)
-from basic import *          # noqa: F401,F403  (Isum, phi_ramp, round_to_even, etc.)
-from phase_masks import *    # noqa: F401,F403  (Phase_masks)
-from new_mask import double_vortex_phase_mask
-from make_plot import *      # noqa: F401,F403  (wfits)
+from .basic import *          # noqa: F401,F403  (Isum, phi_ramp, round_to_even, etc.)
+from .phase_masks import *    # noqa: F401,F403  (Phase_masks)
+from .new_mask import double_vortex_phase_mask
 
 import matplotlib.pyplot as plt  # only used for optional viz in `focal_mask_new`
 

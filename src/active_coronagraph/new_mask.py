@@ -6,6 +6,8 @@ from pathlib import Path
 
 from astropy.io import fits
 
+from .config import binary_mask_dir
+
 try:
     from tqdm import tqdm
 except ImportError:  # pragma: no cover - fallback for environments without tqdm
@@ -180,9 +182,7 @@ def directional_throughput_mono(
     phase_map_fits=None,
 ):
     """Measure monochromatic throughput from -max_ld..+max_ld along 3 directions."""
-    from main_functions_polished import run, _root_folder
-
-    repo_root = Path(__file__).resolve().parent
+    from .main_functions_polished import run, _root_folder
 
     def build_mask_jobs():
         if mask_name not in {"binary_vortex", "binary_mask", "binary_masks"}:
@@ -205,9 +205,9 @@ def directional_throughput_mono(
         if phase_map_fits is not None:
             mask_paths = [Path(phase_map_fits).expanduser().resolve()]
         else:
-            mask_paths = sorted((repo_root / "binary_mask").glob("*.fits"))
+            mask_paths = sorted(binary_mask_dir().glob("*.fits"))
         if not mask_paths:
-            raise FileNotFoundError(f"No FITS masks found in {(repo_root / 'binary_mask')!s}")
+            raise FileNotFoundError(f"No FITS masks found in {binary_mask_dir()!s}")
 
         jobs = []
         for mask_path in mask_paths:
@@ -416,9 +416,7 @@ def throughput_map_mono(
     phase_map_fits=None,
 ):
     """Measure monochromatic throughput on an x/y lambda/D grid."""
-    from main_functions_polished import run, _root_folder
-
-    repo_root = Path(__file__).resolve().parent
+    from .main_functions_polished import run, _root_folder
 
     def build_mask_jobs():
         if mask_name not in {"binary_vortex", "binary_mask", "binary_masks"}:
@@ -441,9 +439,9 @@ def throughput_map_mono(
         if phase_map_fits is not None:
             mask_paths = [Path(phase_map_fits).expanduser().resolve()]
         else:
-            mask_paths = sorted((repo_root / "binary_mask").glob("*.fits"))
+            mask_paths = sorted(binary_mask_dir().glob("*.fits"))
         if not mask_paths:
-            raise FileNotFoundError(f"No FITS masks found in {(repo_root / 'binary_mask')!s}")
+            raise FileNotFoundError(f"No FITS masks found in {binary_mask_dir()!s}")
 
         jobs = []
         for mask_path in mask_paths:
@@ -634,9 +632,7 @@ def throughput_1d_mono(
     phase_map_fits=None,
 ):
     """Measure monochromatic throughput from 0..max_ld along +x."""
-    from main_functions_polished import run, _root_folder
-
-    repo_root = Path(__file__).resolve().parent
+    from .main_functions_polished import run, _root_folder
 
     def build_mask_jobs():
         if mask_name not in {"binary_vortex", "binary_mask", "binary_masks"}:
@@ -658,9 +654,9 @@ def throughput_1d_mono(
         if phase_map_fits is not None:
             mask_paths = [Path(phase_map_fits).expanduser().resolve()]
         else:
-            mask_paths = sorted((repo_root / "binary_mask").glob("*.fits"))
+            mask_paths = sorted(binary_mask_dir().glob("*.fits"))
         if not mask_paths:
-            raise FileNotFoundError(f"No FITS masks found in {(repo_root / 'binary_mask')!s}")
+            raise FileNotFoundError(f"No FITS masks found in {binary_mask_dir()!s}")
 
         jobs = []
         for mask_path in mask_paths:
