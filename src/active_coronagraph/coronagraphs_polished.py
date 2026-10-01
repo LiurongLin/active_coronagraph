@@ -597,7 +597,7 @@ def simple_coro(
     }
 
     N_vor = make_lyot_stop(
-        round_to_even(dim / wavelength),
+        dim,
         fraction=lyot_stop_para[lyot_stop][0] if lyot_stop in lyot_stop_para else 1.0,
         sec_fraction=lyot_stop_para[lyot_stop][1] if lyot_stop in lyot_stop_para else 1.2,
         obstruction=obstruction,
@@ -642,10 +642,11 @@ def simple_coro(
             m_vor_ones[:, ::10] = 0.0
 
         if offset is not None:
-            N_vor_nor = make_lyot_stop(int(dim / wavelength),
+            N_vor_nor = make_lyot_stop(dim,
                                        fraction=lyot_stop_para["None_1_1"][0],
                                        sec_fraction=lyot_stop_para["None_1_1"][1],
-                                       obstruction=obstruction)
+                                       obstruction=obstruction,
+                                       nsamp=nsamp)
             wo_mask = coro_high_sam(A, m_vor_ones, N_vor_nor, dim, nsamp, fpm_sam,
                                     charge=charge,
                                     lyot_sum=None, shift=shift, save=False)[0]

@@ -29,6 +29,16 @@ python -m pip install -e .
 active-coronagraph --function main_func --name dual_zone --charge None
 ```
 
+Run a 20% broadband PSF workflow centered on the reference wavelength:
+
+```bash
+active-coronagraph --function broadband_combine --name vortex --charge 2
+```
+
+The broadband workflow uses wavelength ratios `[0.9, 0.95, 1.0, 1.05, 1.1]`
+by default and combines the wavelength-specific PSFs with endpoint-half
+trapezoid weights.
+
 The legacy source-tree entry point is still available:
 
 ```bash
@@ -37,6 +47,24 @@ python main_polished.py --function main_func --name dual_zone --charge None
 
 Generated simulation outputs are written under the current working directory by
 default.
+
+## Examples
+
+Run the minimal FQPM example:
+
+```bash
+python examples/minimal_simulation.py --save-figure
+```
+
+Run the broadband vortex example and save a diagnostic image:
+
+```bash
+cd examples
+python test_example.py
+```
+
+This writes `test_example_broadband_vortex_image.png` and simulation products
+under `examples/ideal_coro_2rd_mirror_False_broadband_example/`.
 
 ## User Documentation
 
@@ -52,14 +80,11 @@ Paths can be configured with environment variables:
 
 - `ACTIVE_CORONAGRAPH_DATA_DIR`: directory containing `binary_mask/` and `phase_screen/`.
 - `ACTIVE_CORONAGRAPH_OUTPUT_DIR`: base directory for generated simulation outputs.
-- `ACTIVE_CORONAGRAPH_PIXEL_NOISE_OUTPUT_DIR`: base directory for pixel-noise mean outputs.
-- `ACTIVE_CORONAGRAPH_PHASE_SCREEN_FILE`: optional single phase-screen FITS cube for the legacy `add_phase_screen` workflow.
 
 The CLI also accepts:
 
 ```bash
 active-coronagraph --function compare_phase_screens --data-dir data
-active-coronagraph --function add_phase_screen --phase-screen-file path/to/screens.fits
 ```
 
 ## Tests
