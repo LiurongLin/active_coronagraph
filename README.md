@@ -76,7 +76,3 @@ pytest
 
 This project is distributed under the BSD 3-Clause License. See `LICENSE`.
 
-## Before Public Release
-
-Expand `data/README.md` with provenance, license, and citation information for
-the bundled FITS data before public release.
