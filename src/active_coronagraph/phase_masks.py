@@ -1,17 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-from basic import *
-from phase_masks import *
-import numpy as np
-import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib import gridspec
 from matplotlib import animation
 from astropy.io import fits
 from functools import partial
 import os
-from make_plot import *
 from hcipy import *
 
 mpl.rcParams['figure.dpi'] = 300

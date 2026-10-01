@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from astropy.io import fits
+import numpy as np
+import matplotlib.pyplot as plt
 
 try:
     from tqdm import tqdm
@@ -66,10 +68,7 @@ def directional_throughput_mono(
     phase_map_fits=None,
 ):
     """Measure monochromatic throughput from -max_ld..+max_ld along 3 directions."""
-    from main_functions_polished import run, _root_folder
-
-    repo_root = Path(__file__).resolve().parent
-
+    from .main_functions_polished import run, _root_folder
 
     radii = np.arange(-max_ld, max_ld + 0.5 * step_ld, step_ld)
     inv_sqrt2 = 1.0 / np.sqrt(2.0)
@@ -252,10 +251,7 @@ def throughput_map_mono(
     phase_map_fits=None,
 ):
     """Measure monochromatic throughput on an x/y lambda/D grid."""
-    from main_functions_polished import run, _root_folder
-
-    repo_root = Path(__file__).resolve().parent
-
+    from .main_functions_polished import run, _root_folder
 
     x_coords = np.arange(min_ld, max_ld + 0.5 * step_ld, step_ld, dtype=float)
     y_coords = np.arange(min_ld, max_ld + 0.5 * step_ld, step_ld, dtype=float)
@@ -420,10 +416,7 @@ def throughput_1d_mono(
     phase_map_fits=None,
 ):
     """Measure monochromatic throughput from 0..max_ld along +x."""
-    from main_functions_polished import run, _root_folder
-
-    repo_root = Path(__file__).resolve().parent
-
+    from .main_functions_polished import run, _root_folder
 
     x_coords = np.arange(0.0, max_ld + 0.5 * step_ld, step_ld, dtype=float)
     out_dir = _root_folder(obstruction, noise_level, folder_name) / "throughput_1d_mono"
