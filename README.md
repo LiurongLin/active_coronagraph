@@ -185,6 +185,16 @@ active-coronagraph --function compare_phase_screens --name FQPM --charge None --
 The supplied phase-screen cubes are FITS files. The code applies each cube slice
 as an entrance-pupil phase screen in the phase-screen comparison workflow.
 
+## Portability Notes
+
+The current source tree does not require machine-specific paths such as external
+drives. Runtime data is resolved from `ACTIVE_CORONAGRAPH_DATA_DIR`, `--data-dir`,
+or `--phase-screen-folder`.
+
+Generated output directories such as `ideal_coro_2rd_mirror_*`,
+`_phase_screen_compare/`, and `output/` are not source dependencies. They are
+ignored by Git and can be recreated by running the CLI workflows.
+
 ## Output Files
 
 The CLI writes files into a generated directory tree. The root directory is:
