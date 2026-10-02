@@ -841,7 +841,7 @@ The supplied phase-screen cubes are `(100, 100, 100)`. A selected slice has
 shape `(100, 100)`, matching `dim=100` at `wavelength=1.0` in the default
 phase-screen workflows.
 
-Second, the CLI has legacy workflows:
+The CLI also includes a phase-screen comparison workflow:
 
 ```bash
 active-coronagraph --function compare_phase_screens --name FQPM --charge None
@@ -1103,7 +1103,7 @@ and pass it as `phase=...` as shown in the phase-screen section.
 - The public API is not yet concentrated in `active_coronagraph.__init__`; users
   import from implementation modules.
 - Many routines write files as side effects.
-- The CLI is a legacy workflow wrapper with module-level defaults. Some options
+- The CLI is a workflow wrapper with module-level defaults. Some options
   are workflow-specific and are not applied globally.
 - Several plotting helpers assume specific generated directory names.
 - The bundled data README does not yet document provenance, generation method,

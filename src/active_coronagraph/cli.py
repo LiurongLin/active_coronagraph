@@ -31,6 +31,7 @@ from .main_functions_polished import _root_folder, _run_dir
 from .new_mask import directional_throughput_mono, throughput_map_mono, throughput_1d_mono
 from .config import (
     data_dir as configured_data_dir,
+    output_dir as configured_output_dir,
     phase_screen_dir,
 )
 import os
@@ -99,6 +100,27 @@ offset_0_2 = np.zeros_like(offset_0_1)
 # Helpers
 # -----------------------------------------------------------------------------
 
+def _call_preserving_cwd(func, *args, **kwargs):
+    """Call a legacy helper that may change cwd, then restore the caller cwd."""
+    old = Path.cwd()
+    try:
+        return func(*args, **kwargs)
+    finally:
+        os.chdir(old)
+
+
+def _call_from_output_dir_preserving_cwd(func, *args, **kwargs):
+    """Call a legacy output reader from the configured output directory."""
+    old = Path.cwd()
+    try:
+        out_dir = configured_output_dir()
+        out_dir.mkdir(parents=True, exist_ok=True)
+        os.chdir(out_dir)
+        return func(*args, **kwargs)
+    finally:
+        os.chdir(old)
+
+
 def parse_charge(charge_str: str) -> Optional[int]:
     """argparse type for vortex charge that accepts 'None'."""
     if charge_str.lower() == 'none':
@@ -154,7 +176,8 @@ def main_func(mask_name: str, charge_val: Optional[int], phase: Optional[np.ndar
             folder_name=folder, noise_level = noise_level, ghost = ghost,
             phase_shift=phase_shift, phase_shift_unit=phase_shift_unit,
             coro_shift=coro_shift, )
-        contrast = annuli_mean(
+        contrast = _call_from_output_dir_preserving_cwd(
+            annuli_mean,
             mask_name, nsamp, fpm_sam, lyot_stop, charge_val, obstruction,
             wl=float(wl), rotate=False, greyscale=gs, broadband=False,
             noise_level=noise_level, folder_name=folder,
@@ -174,6 +197,7 @@ def main_func(mask_name: str, charge_val: Optional[int], phase: Optional[np.ndar
             phase_shift=phase_shift,
             phase_shift_unit=phase_shift_unit,
         )
+        plot_dir.mkdir(parents=True, exist_ok=True)
         fig, ax = plt.subplots(figsize=(8, 6))
         ax.plot(r_mid, contrast)
         ax.set_yscale("log")
@@ -273,23 +297,24 @@ def _phase_screen_case_tag(path: Path) -> str:
 
 def compare_phase_screen_cases(mask_name: str, charge_val: Optional[int]) -> None:
     """Compare the no-screen baseline with all phase-screen cubes in `phase_screen/`."""
-    local_obstruction = True
+    local_obstruction = obstruction
     base_compare_folder = "_phase_screen_compare"
     baseline_folder = f"{base_compare_folder}/no_screen"
-    repo_root = Path(__file__).resolve().parent
+    start_dir = Path.cwd()
 
     if not phase_screen_folder.exists():
         raise FileNotFoundError(f"Phase-screen folder not found: {phase_screen_folder}")
 
-    os.chdir(repo_root)
+    os.chdir(start_dir)
     try:
         main_func(mask_name, charge_val, phase=None, folder=baseline_folder)
-        baseline_curve = annuli_mean(
+        baseline_curve = _call_from_output_dir_preserving_cwd(
+            annuli_mean,
             mask_name, nsamp, fpm_sam, lyot_stop, charge_val, local_obstruction,
-            wl=1.0, rotate=False, greyscale=8, broadband=False,
-            folder_name=baseline_folder,
+            wl=1.0, rotate=False, greyscale=gs, broadband=False,
+            noise_level=noise_level, folder_name=baseline_folder,
         )
-        os.chdir(repo_root)
+        os.chdir(start_dir)
 
         curves: list[tuple[str, np.ndarray]] = [("no_screen", np.asarray(baseline_curve))]
 
@@ -301,32 +326,35 @@ def compare_phase_screen_cases(mask_name: str, charge_val: Optional[int]) -> Non
                 phase_cube = hdul[0].data
 
             for i, phase_screen in enumerate(phase_cube):
-                os.chdir(repo_root)
+                os.chdir(start_dir)
                 main_func(mask_name, charge_val, phase=phase_screen, folder=f"{case_folder}/{i}")
 
-            os.chdir(repo_root)
+            os.chdir(start_dir)
             combine_phase_screen_psf(
                 mask_name, charge_val, local_obstruction,
                 folder_name=case_folder, n_realizations=len(phase_cube),
+                lyot_stop=lyot_stop, nsamp=nsamp, fpm_sam=fpm_sam,
+                greyscale=gs, noise_level=noise_level,
             )
 
-            case_curve = annuli_mean(
+            case_curve = _call_from_output_dir_preserving_cwd(
+                annuli_mean,
                 mask_name, nsamp, fpm_sam, lyot_stop, charge_val, local_obstruction,
-                wl=1.0, rotate=False, greyscale=8, broadband=False,
-                folder_name=case_folder,
+                wl=1.0, rotate=False, greyscale=gs, broadband=False,
+                noise_level=noise_level, folder_name=case_folder,
             )
-            os.chdir(repo_root)
+            os.chdir(start_dir)
             curves.append((case_tag, np.asarray(case_curve)))
 
         r_mid = (np.arange(len(curves[0][1])) + 0.5) / 10.0
-        out_dir = _root_folder(local_obstruction, None, base_compare_folder)
+        out_dir = _root_folder(local_obstruction, noise_level, base_compare_folder)
         out_dir.mkdir(parents=True, exist_ok=True)
 
         fig, ax = plt.subplots(figsize=(8, 6))
         for label, curve in curves:
             ax.plot(r_mid, curve, label=label)
         ax.set_yscale("log")
-        ax.set_xlabel(r"$\\lambda$/D")
+        ax.set_xlabel(r"$\lambda$/D")
         ax.set_ylabel("Median contrast")
         ax.set_title(f"Phase-screen comparison: {mask_name} {charge_val}")
         ax.legend()
@@ -334,7 +362,7 @@ def compare_phase_screen_cases(mask_name: str, charge_val: Optional[int]) -> Non
         fig.savefig(out_dir / f"phase_screen_comparison_{mask_name}_{charge_val}.png", dpi=200)
         plt.close(fig)
     finally:
-        os.chdir(repo_root)
+        os.chdir(start_dir)
 
 
 def res_ene_collect(mask_name: str, charge_val: Optional[int], phase: Optional[np.ndarray] = None, folder: str = folder_name) -> None:
