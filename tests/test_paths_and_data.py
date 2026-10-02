@@ -55,3 +55,24 @@ def test_bundled_phase_screen_cubes_have_expected_shape():
 
         assert data.shape == (100, 100, 100)
         assert np.issubdtype(data.dtype, np.floating)
+
+
+def test_source_tree_has_no_machine_specific_runtime_paths():
+    scanned_suffixes = {".py", ".md", ".toml", ".cff"}
+    forbidden = [
+        "/" + "media" + "/" + "liurong",
+        "My " + "Passport",
+        "pixel_noise" + "_mean_output_dir",
+        "2)" + "seeing=1,vmag=8,ZA=30,lag=2",
+        "TROIA_phase_screens_new" + ".fits",
+    ]
+
+    for path in Path(".").rglob("*"):
+        if any(part in {".git", ".venv", "__pycache__", ".pytest_cache"} for part in path.parts):
+            continue
+        if not path.is_file() or path.suffix not in scanned_suffixes:
+            continue
+
+        text = path.read_text(encoding="utf-8")
+        for value in forbidden:
+            assert value not in text, f"{value!r} found in {path}"
