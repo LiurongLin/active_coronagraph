@@ -409,8 +409,9 @@ with shape `(dim * fpm_sam, dim * fpm_sam)`. Its coordinate order is preserved.
 It passes through the same wavelength scaling, resampling and optional
 quantization as the other masks. Charge is unused; pass `None`.
 
-```python
-from active_coronagraph.main_functions_polished import run
+The three monochromatic throughput helpers accept `mask_name="new_mask"`,
+`charge_val=None`, and `phase_map_fits="my_phase.fits"`. They process that file
+and show its phase map in sampling diagnostics. There is no implicit data folder.
 
 ```bash
 active-coronagraph --function tp_map_mono --name new_mask --charge None --phase-map-fits my_phase.fits --tp-map-max-ld 3
@@ -780,7 +781,7 @@ The supplied phase-screen cubes are `(100, 100, 100)`. A selected slice has
 shape `(100, 100)`, matching `dim=100` at `wavelength=1.0` in the default
 phase-screen workflows.
 
-Second, the CLI has legacy workflows:
+The CLI also includes a phase-screen comparison workflow:
 
 ```bash
 active-coronagraph --function compare_phase_screens --name FQPM --charge None
@@ -996,7 +997,7 @@ and pass it as `phase=...` as shown in the phase-screen section.
 - The public API is not yet concentrated in `active_coronagraph.__init__`; users
   import from implementation modules.
 - Many routines write files as side effects.
-- The CLI is a legacy workflow wrapper with module-level defaults. Some options
+- The CLI is a workflow wrapper with module-level defaults. Some options
   are workflow-specific and are not applied globally.
 - Several plotting helpers assume specific generated directory names.
 - The bundled data README does not yet document provenance, generation method,
