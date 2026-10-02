@@ -1,134 +1,33 @@
-# Active Coronagraph
+# main_polished bundle
 
-Active Coronagraph is scientific Python software for coronagraph simulations and
-focal-plane mask studies. It can generate phase masks, run coronagraph
-propagation workflows, compute radial contrast-like curves and throughput
-products, and write FITS and text outputs for later analysis.
+This folder contains the project-local code required by `main_polished.py`.
 
-## Installation
+Included Python modules:
+- `main_polished.py`
+- `basic.py`
+- `make_plot.py`
+- `coronagraphs.py`
+- `coronagraphs_polished.py`
+- `main_functions_polished.py`
+- `new_mask.py`
+- `phase_masks.py`
 
-From a fresh clone:
+Included runtime data directories referenced by the code:
+- `binary_mask/`
+- `phase_screen/`
 
-```bash
-git clone https://github.com/LiurongLin/active_coronagraph.git
-cd active_coronagraph
-python3 -m venv .venv
-source .venv/bin/activate
-python3 -m pip install --upgrade pip
-python3 -m pip install -e .
-```
+Notes before running elsewhere:
+- `main_polished.py` contains a hardcoded output path:
+  - `pixel_noise_mean_output_dir = Path("/media/liurong/My Passport/PLACID")`
+  Update that path for the target machine if you need the `pixel_noise` workflow.
+- Some workflows also expect generated outputs under directories such as
+  `ideal_coro_2rd_mirror_*`. Those are not included here because they are outputs,
+  not source dependencies.
+- The `add_phase_screen` branch in `main_polished.py` also references
+  `2)seeing=1,vmag=8,ZA=30,lag=2/TROIA_phase_screens_new.fits`, which is not part
+  of this bundle.
 
-For development and tests, install the optional test dependency:
-
-```bash
-python3 -m pip install -e ".[dev]"
-```
-
-On Ubuntu or Debian, `python3 -m venv .venv` requires the system venv package:
-
-```bash
-sudo apt install python3-venv
-```
-
-## Verify Installation
-
-The command-line entry point is defined in `pyproject.toml` as
-`active-coronagraph`.
-
-```bash
-active-coronagraph --help
-```
-
-If you are working from the source tree before installing the package, this
-equivalent command also shows the same parser:
-
-```bash
-python3 -m active_coronagraph.cli --help
-```
-
-## Quick Start With CLI
-
-Run a monochromatic dual-zone coronagraph simulation:
-
-```bash
-active-coronagraph --function main_func --name dual_zone --charge None
-```
-
-This runs the `main_func` workflow with:
-
-- mask: `dual_zone`
-- vortex charge: `None`
-- wavelength ratio: `1.0`
-- pupil dimension: `100`
-- numerical sampling: `10` pixels per `lambda/D`
-- focal-plane mask sampling: `10`
-- Lyot stop preset: `large_cross`
-- central obstruction: `False`
-
-By default, outputs are written under the current working directory. For the
-command above, the main output directory is:
-
-```text
-ideal_coro_2rd_mirror_False_noise_0/
-```
-
-The simulation products for this run are written one level deeper:
-
-```text
-ideal_coro_2rd_mirror_False_noise_0/
-`-- lyot_large_cross_dual_zone_None_lambda_1.0_fpm_sam=10_binary_False_obstruction_False/
-    |-- m_vor_dual_zone_None_nsamp=10_fpm_sam=10_rotate=False_greyscale=None_gmethod=legacy_wl_1.0_cal_1.0.fits
-    |-- final_focal_plane_coro_mask=dual_zone_None_sample=10_fpm_sam=10_obstruction_False.fits
-    |-- final_focal_plane_coro_mask=dual_zone_None_sample=10_fpm_sam=10_obstruction_False_wl_1.0.txt
-    `-- final_focal_plane_coro_mask=dual_zone_None_sample=10_fpm_sam=10_obstruction_False_wl_1.0_pupil_100_annuli_mean.png
-```
-
-In that directory, the `m_vor...fits` file is the focal-plane phase mask, the
-`final_focal_plane...fits` file is the normalized coronagraphic image, the
-`..._wl_1.0.txt` file is the radial median intensity curve, and the PNG is a
-plot of that curve.
-
-## CLI Usage
-
-General syntax:
-
-```bash
-active-coronagraph --function WORKFLOW [OPTIONS]
-```
-
-Important options supported by the current CLI:
-
-| Option | Meaning | Default | Allowed values | Example |
-| --- | --- | --- | --- | --- |
-| `--function` | Workflow to run. Required. | none | `main_func`, `res_ene`, `annuli_mean`, `summary_plot`, `broadband_combine`, `tp_bb`, `plot_tp`, `fpm_plot`, `broadband_kit`, `add_fill_factor`, `ghost_im`, `compare_phase_screens`, `tp_directional_mono`, `tp_map_mono`, `tp_1d_mono` | `--function main_func` |
-| `--name` | One or more mask names. The CLI zips names with charges. | `vortex vortex vortex vortex FQPM roddier dual_zone ACM ACM` | Main simulations support names implemented by `focal_mask_new()`: `FQPM`, `ACM`, `vortex`, `roddier`, `dual_zone`, `dual_zone_old`, `double_vortex`. Throughput helpers also accept `binary_mask`, `binary_vortex`, `binary_masks`. | `--name vortex` |
-| `--charge` | One or more vortex charges. Use `None` for masks without a charge. | `8 2 4 6 None None None 2 4` | integer or `None` | `--charge 2` |
-| `--wavelength` | Wavelength ratios `lambda/lambda_0`. | `[1.0]` for monochromatic workflows; `[0.9, 0.95, 1.0, 1.05, 1.1]` for broadband workflows | one or more floats | `--wavelength 0.95 1.0 1.05` |
-| `--phase-shift` | Entrance-pupil phase ramp used to shift the PSF center. Order is `DY DX`. | `0.0 0.0` | two floats | `--phase-shift 0.5 0.0` |
-| `--phase-shift-unit` | Unit for `--phase-shift`. | `array` | `array`, `fpm` | `--phase-shift-unit fpm` |
-| `--coro-shift` | Apply the half-pixel coronagraph centering shift. | `True` | boolean strings such as `true`, `false`, `1`, `0` | `--coro-shift false` |
-| `--dv-sigma-ld` | Double-vortex sigma in `lambda/D`. Used when `--name double_vortex`. | `1.0` | float | `--dv-sigma-ld 0.8` |
-| `--dv-angle-deg` | Double-vortex azimuthal angle in degrees. | `0.0` | float | `--dv-angle-deg 20` |
-| `--dv-separation-ld` | Double-vortex separation in `lambda/D`. | `2.0` | float | `--dv-separation-ld 3` |
-| `--dv-pa-deg` | Double-vortex position angle in degrees. | `0.0` | float | `--dv-pa-deg 45` |
-| `--phase-map-fits` | Use one specific binary FITS mask. Only used by throughput workflows with `--name binary_mask`, `binary_vortex`, or `binary_masks`. | none | path to a FITS file | `--phase-map-fits data/binary_mask/Binary_vortex_sep0.5.fits` |
-| `--tp-map-min-ld` | Lower bound for `tp_map_mono`, in `lambda/D`. | `0.0` | float | `--tp-map-min-ld 0` |
-| `--tp-map-max-ld` | Upper bound for `tp_map_mono`, in `lambda/D`. | `20.0` | float | `--tp-map-max-ld 5` |
-| `--tp-map-step-ld` | Grid spacing for `tp_map_mono`, in `lambda/D`. | `1.0` | float | `--tp-map-step-ld 0.5` |
-| `--tp-1d-max-ld` | Upper bound for `tp_1d_mono`, in `lambda/D`. | `20.0` | float | `--tp-1d-max-ld 5` |
-| `--tp-1d-step-ld` | Step size for `tp_1d_mono`, in `lambda/D`. | `0.1` | float | `--tp-1d-step-ld 0.5` |
-| `--data-dir` | Runtime data root containing `binary_mask/` and `phase_screen/`. | `ACTIVE_CORONAGRAPH_DATA_DIR` or `./data` | path | `--data-dir data` |
-| `--phase-screen-folder` | Folder containing phase-screen FITS cubes for `compare_phase_screens`. | `data_dir()/phase_screen` | path | `--phase-screen-folder data/phase_screen` |
-| `--lyot` | Parsed as a boolean, but the current `main()` implementation does not apply it to workflow settings. | `False` | boolean strings | `--lyot true` |
-
-The CLI does not currently expose flags for pupil dimension, numerical sampling
-(`nsamp`), focal-plane mask sampling (`fpm_sam`), phase greyscale, calibration
-factor, central obstruction, spider, Lyot stop preset, noise level, or output
-directory. These are module defaults or Python API parameters.
-
-## Common CLI Examples
-
-Run the default/minimal CLI simulation:
+Basic run example:
 
 ```bash
 active-coronagraph --function main_func --name dual_zone --charge None
@@ -467,6 +366,3 @@ If you use this software, cite it using the metadata in `CITATION.cff`.
 
 This project is distributed under the BSD 3-Clause License. See `LICENSE`.
 
-## Contributing
-
-See `CONTRIBUTING.md` before making large scientific or algorithmic changes.
