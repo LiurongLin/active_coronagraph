@@ -455,27 +455,37 @@ def combine_phase_screen_psf(
     obstruction: bool,
     folder_name: str = "_phase_screen_lag2",
     n_realizations: int = 100,
+    lyot_stop: Optional[str] = "None_1_1",
+    nsamp: int = 10,
+    fpm_sam: int = 10,
+    greyscale: Optional[int | bool] = 8,
+    noise_level: Optional[float] = None,
 ):
     """Average PSFs over multiple phase-screen realizations and save a FITS file."""
-    base = _root_folder(obstruction, None, folder_name)
+    base = _root_folder(obstruction, noise_level, folder_name)
+    run_dir = _run_dir(
+        lyot_stop=lyot_stop,
+        name=name,
+        charge=charge,
+        wavelength=1.0,
+        nsamp=nsamp,
+        fpm_sam=fpm_sam,
+        binary=False,
+        obstruction=obstruction,
+        greyscale=greyscale,
+        offset=None,
+    )
+    psf_name = (
+        f"final_focal_plane_coro_mask={name}_{charge}_sample={nsamp}_"
+        f"fpm_sam={fpm_sam}_obstruction_{obstruction}.fits"
+    )
 
     # Where the averaged file will be written
-    output_path = (
-        base
-        / f"lyot_None_1_1_{name}_{charge}_lambda_1.0_fpm_sam=10_binary_False_"
-        f"obstruction_{obstruction}_greyscale_8/"
-        f"final_focal_plane_coro_mask={name}_{charge}_sample=10_fpm_sam=10_obstruction_{obstruction}.fits"
-    )
+    output_path = base / run_dir / psf_name
 
     arrays: List[np.ndarray] = []
     for i in range(n_realizations):
-        file_path = (
-            base
-            / f"{i}/"
-            / f"lyot_None_1_1_{name}_{charge}_lambda_1.0_fpm_sam=10_binary_False_"
-            f"obstruction_{obstruction}_greyscale_8/"
-            f"final_focal_plane_coro_mask={name}_{charge}_sample=10_fpm_sam=10_obstruction_{obstruction}.fits"
-        )
+        file_path = base / f"{i}" / run_dir / psf_name
         if not file_path.exists():
             continue
         with fits.open(file_path) as hdul:
